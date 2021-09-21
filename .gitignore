@@ -11,3 +11,7 @@
 /SyncChanges.Service/obj
 /SyncChanges.Tests/bin/Debug/net461
 /SyncChanges.Tests/obj
+/SyncChanges.Core/bin/Debug/netcoreapp3.1
+/SyncChanges.Core/obj
+/SyncChanges.Core.CA/bin/Debug/netcoreapp3.1
+/SyncChanges.Core.CA/obj

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SyncChanges.Core.CA": {
+      "commandName": "Project",
+      "commandLineArgs": "-l config.json"
+    }
+  }
+}
