@@ -1,0 +1,19 @@
+{
+  "ReplicationSets": [
+    {
+      "Name": "Test",
+      "Source": {
+        "Name": "Primary",
+        "ConnectionString": "Data Source=.\\sqlexpress;Initial Catalog=previcad_20210531;Integrated Security=True;MultipleActiveResultSets=True"
+      },
+      "Destinations": [
+        {
+          "Name": "Secondary 1",
+          "ConnectionString": "C:\\temp\\Previcad"
+        }
+        
+      ],
+      "Tables": [ "AspNetUsers", "Equipements", "Instructions" ]
+    }
+  ]
+}

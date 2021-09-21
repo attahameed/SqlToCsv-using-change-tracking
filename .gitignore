@@ -1,0 +1,13 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/SyncChanges
+/SyncChanges/bin/Debug/netstandard2.0
+/SyncChanges/obj/Debug/netstandard2.0
+/SyncChanges/obj
+/SyncChanges.Console/bin/Debug/net461
+/SyncChanges.Console/obj
+/SyncChanges.Service/obj
+/SyncChanges.Tests/bin/Debug/net461
+/SyncChanges.Tests/obj
