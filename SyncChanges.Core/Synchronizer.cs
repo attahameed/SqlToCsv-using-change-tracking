@@ -47,6 +47,12 @@ namespace SyncChanges.Core
         Config Config { get; set; }
         bool Error { get; set; }
 
+        private readonly string _Delimiter = ";";
+        private readonly string _FileExtension = ".csv";
+
+        // add all sync data in this directory when process start its iteration
+        private readonly string _CurrentDyncDir = "";
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Synchronizer"/> class.
         /// </summary>
@@ -55,6 +61,7 @@ namespace SyncChanges.Core
         public Synchronizer(Config config)
         {
             Config = config ?? throw new ArgumentException("config is null", nameof(config));
+            _CurrentDyncDir = DateTime.Now.ToString("yyyyMMddhmmss");
         }
 
         private IList<IList<TableInfo>> Tables { get; } = new List<IList<TableInfo>>();
@@ -374,11 +381,11 @@ namespace SyncChanges.Core
                 if (!System.IO.Directory.Exists(destination.ConnectionString)) System.IO.Directory.CreateDirectory(destination.ConnectionString);
 
                 string filePath = string.Format("{0}\\_version.txt", destination.ConnectionString);
-                
+
                 // write version in file
                 System.IO.File.WriteAllText(filePath, currentVersion.ToString());
 
-                
+
                 /*
                 var syncInfoTableExists = db.ExecuteScalar<string>("select top(1) name from sys.tables where name ='SyncInfo'") != null;
 
@@ -528,12 +535,12 @@ namespace SyncChanges.Core
 
             bool writeHeader = false;
 
-            string dirPath = string.Format("{0}\\{1}", destination.ConnectionString, change.Version);
-            string filePath = string.Format("{0}\\{1}.csv", dirPath, table.Name.Replace("[", "").Replace("]", "").Replace("dbo.", ""));
+            string dirPath = string.Format("{0}\\{1}", destination.ConnectionString, _CurrentDyncDir);
+            string filePath = string.Format("{0}\\{1}{2}", dirPath, table.Name.Replace("[", "").Replace("]", "").Replace("dbo.", ""), _FileExtension);
 
             if (!System.IO.Directory.Exists(dirPath)) System.IO.Directory.CreateDirectory(dirPath);
 
-            // create csv if not already exists
+            // create delimited file if not already exists
             if (!System.IO.File.Exists(filePath))
             {
                 writeHeader = true;
@@ -558,8 +565,8 @@ namespace SyncChanges.Core
                     {
                         //db.Execute(insertSql, insertValues);
 
-                        string headerLine = string.Join(",", insertColumnNames);
-                        string dataLine = string.Join(",", insertValues);
+                        string headerLine = "Operation" + _Delimiter + string.Join(_Delimiter, insertColumnNames);
+                        string dataLine = "I" + _Delimiter + string.Join(_Delimiter, insertValues);
 
                         if (writeHeader) System.IO.File.WriteAllText(filePath, headerLine);
 
@@ -575,10 +582,11 @@ namespace SyncChanges.Core
                         PrimaryKeys(change));
                     var updateValues = change.GetValues();
                     Log.Debug($"Executing update: {updateSql} ({FormatArgs(updateValues)})");
+
                     if (!DryRun)
                     {
-                        string headerLine = string.Join(",", updateColumnNames);
-                        string dataLine = string.Join(",", updateValues);
+                        string headerLine = "Operation" + _Delimiter + string.Join(_Delimiter, updateColumnNames);
+                        string dataLine = "U" + _Delimiter + string.Join(_Delimiter, updateValues);
 
                         if (writeHeader) System.IO.File.WriteAllText(filePath, headerLine);
 
@@ -592,8 +600,30 @@ namespace SyncChanges.Core
                     var deleteSql = string.Format("delete from {0} where {1}", tableName, PrimaryKeys(change));
                     var deleteValues = change.Keys.Values.ToArray();
                     Log.Debug($"Executing delete: {deleteSql} ({FormatArgs(deleteValues)})");
+
                     if (!DryRun)
                     {
+                        //string pkName = PrimaryKeys(change);
+                        var columnNames = change.GetColumnNames();
+                        string headerLine = "Operation" + _Delimiter + string.Join(_Delimiter, columnNames);
+
+                        /*string dataLine = "";
+
+                        foreach (var col in columnNames)
+                        {
+                            if (col == pkName)
+                                dataLine += string.Format("{0}{1}", deleteValues.First(), _Delimiter);
+                            else
+                                dataLine +=  _Delimiter;
+                        }
+                        */
+
+                        string dataLine = "D" + _Delimiter + string.Join(_Delimiter, deleteValues);
+
+                        if (writeHeader) System.IO.File.WriteAllText(filePath, headerLine);
+
+                        System.IO.File.AppendAllText(filePath, Environment.NewLine + dataLine);
+
                         //db.Execute(deleteSql, deleteValues);
                     }
                     break;
@@ -650,7 +680,7 @@ namespace SyncChanges.Core
             long version = 0;
 
             // first version
-            if (!System.IO.Directory.Exists(destination.ConnectionString)) 
+            if (!System.IO.Directory.Exists(destination.ConnectionString))
                 return 0;
 
 
